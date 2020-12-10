@@ -1,0 +1,93 @@
+% Aula 15
+
+\subsection{a} Como o algoritmo HeapSort tem complexidade $\Theta(n \lg n)$, a solução de Xitoró terá tempo de execução total de
+\[
+    T(n) = \sum_{i = 1}^k \Theta(n_i \lg n_i) + \Theta(1) = \Theta\left(\sum_{i = 1}^k n_i \lg n_i \right)
+\]
+
+Logo, dependendo do comportamento de $n_i$, é possível que $T(n) \in \omega(n)$, ou seja, $T(n) \not\in O(n)$. Portanto, essa solução não terá necessariamente o comportamento assintótico desejado. Os requisitos de espaço, no entanto, são alcaçados.
+
+\subsection{b} Como o CountingSort tem uso de espaço $O(n)$, o espaço total seria $O(n^2)$, no entanto, o compartilhamento de buffer de contagem permite espaço em ordem $O(n)$. Apesar disso, a complexidade da solução de Chorãozinho terá, para este problema:
+\begin{align*}
+    T(n) &= \sum_{i = 1}^k O(n_i + n) + O(1) \\
+    &= O\left(\sum_{i=1}^k n_i\right) + n \sum_{i=1}^k O(1) \\
+    &= O(n) + n O(k) = n O(n) \\
+    &= O(n^2)
+\end{align*}
+Portanto, também não terá o comportamento assintótico desejado.
+
+\subsection{c} A solução desse problema, apresentada abaixo, se baseia na ideia de que um número inteiro pode ser visto como um vetor de dígitos em uma base $b$ qualquer. Assim, o algoritmo funciona como o CountingSort, contando as repetições de um número, sendo que cada vetor $V_i$ tem sua contagem em um dígito $i-1$ do contador. Para que o algoritmo seja linear,  vamos assumir um modelo computacional similar ao RAM, mas com um operação extra: $\proc{PróximoDigito}(n, b)$, que descobre o próximo dígito não-nulo de $n$ na base $b$. Além disso, a operação de potência também é assumida constante.
+
+Isso não é muito longe de arquiteturas atuais, como x86 e ARM, com as operações \textit{find first set} ou \textit{count leading zeroes}. Uma implementação real, em uma máquina dessas, deveria aproximar $b$ para a potência de 2 mais próxima, onde $\proc{PróximoDigito}$ e a potência $b^k$ podem ser realizadas em tempo constante. No entanto, uma implementação real teria muitos limites quanto aos tamanhos $n$ e $k$ do problema se quisesse manter o comportamento assintótico do algoritmo.
+
+\begin{codebox}
+    \Procname{$\proc{CountSortVarios}(V, k, n)$}
+    \li \Comment Contador de repetições de cada elemento.
+    \li Seja $C[1 \twodots n] = [0 \twodots 0]$ um novo vetor. \label{linha:czero}
+    \li
+    \li \Comment Maior quantidade possível em um dígito.
+    \li $b \gets \text{máx}\left(\attrib{V[i]}{\id{tamanho}} ~\For~ i = 1 ~\To~ k\right) + 1$ \label{linha:base}
+    \li
+    \li \Comment Contagem das repetições.
+    \li \For $i = 1$ \To $k$ \label{linha:for}
+        \Do
+    \li     \For $j = 1$ \To $\attrib{V[i]}{\id{tamanho}}$ \label{linha:forcnt}
+            \Do
+    \li         \Comment Cada vetor $V_i$ é contado no dígito $i-1$ base $b$.
+    \li         $C[V[i][j]] \gets C[V[i][j]] + 1 \cdot b^{i-1}$ \label{linha:forcnt:end}
+            \End
+    \li     \Comment Parte já ordenada do vetor $V_i$.
+    \li     $\attrib{V[i]}{\id{tamanho}} \gets 0$ \label{linha:for:end}
+        \End
+    \li
+    \li \Comment Reposição dos elementos nos vetores.
+    \li \For $i = 1$ \To $n$ \label{linha:fornum}
+        \Do
+    \li     \While $C[i] > 0$ \label{linha:while}
+            \Do
+    \li         \Comment Próximo vetor com contagens em $C_i$.
+    \li         $d \gets \proc{PróximoDigito}(C[i], b)$ \label{linha:proxd}
+    \li         \Comment Quantidade de repetições de $i$ em $V_{d+1}$.
+    \li         $\id{cnt} \gets C[i] / b^d ~\kw{mod}~ b$ \label{linha:cntd}
+    \li         $C[i] \gets C[i] -  \id{cnt} \cdot b^d$
+    \li         \For $j = 1$ \To $\id{cnt}$ \label{linha:cnt}
+                \Do
+    \li             $\attrib{V[d + 1]}{\id{tamanho}} \gets \attrib{V[d + 1]}{\id{tamanho}} + 1$
+    \li             $V[d + 1][\attrib{V[d + 1]}{\id{tamanho}}] = i$
+                \End \label{linha:cnt:end}
+            \End \label{linha:while:end}
+        \End \label{linha:fornum:end}
+\end{codebox}
+
+\begin{proof}[Corretude]
+    Nas linhas \ref{linha:forcnt} a \ref{linha:forcnt:end} é feita a contagem das repetições dos elementos do vetor $V_i$. A contagem acontece apenas no $i$-ésimo dígito do número no vetor $C$, que é alcançado com o fator $b^{i-1}$. A invariante aqui é que $C$ contém nos dígitos $i$ todas as repetições de $V_{i,1}$ até $V_{i,j}$
+
+    Para que seja correta a invariante, é necessário que as repetições não extrapolem o tamanho de um dígito, por isso a base foi escolhida como $\displaystyle b = 1 + \max_{1 \leq i \leq k}(n_i)$, na linha \ref{linha:base}. Além disso, a linha \ref{linha:for:end} recomeça o marcador de tamanho do vetor para 0, que agora deverá marcar a quantidade de posições já ordenadas no vetor. Com isso, temos que as linhas \ref{linha:for} a \ref{linha:for:end} garantem que $C$ tem todas as contagens do vetores $V_1, \ldots, V_i$, nos dígitos correspondentes.
+
+    A partir disso, o laço nas linhas \ref{linha:fornum} até \ref{linha:fornum:end} é responsável por repopular os vetores de forma ordenada, mantendo a invariante de que todos os números de 1 a $i$ já foram inseridos nos vetores $V_1, \ldots, V_k$ nas ordens e quantidades corretas. Para alcaçar isso, o laço interno \ref{linha:while}-\ref{linha:while:end} percorre o contador de repetições $C_i$, recuperando o próximo dígito não nulo $d$ (\ref{linha:proxd} e \ref{linha:cntd}), que corresponde à quantidade de repetições de $i$ em $V_{d+1}$. Esse valor então é removido de $C_i$, no dígito correspondente, para manter a invariante de que $C_i$ contém apenas as repetições de $i$ ainda não inseridas em $V_1, \ldots, V_k$.
+
+    Por fim, mantidas as invariantes, o laço \ref{linha:fornum}-\ref{linha:fornum:end} encerra com todos os números de 1 até $n$ inseridos em $V_1, \ldots, V_k$ de forma ordenada. Portanto, $V_1, \ldots, V_k$ estão ordenados.
+\end{proof}
+
+\begin{proof}[Complexidade]
+    Podemos ver que a linha \ref{linha:czero} executa em $O(n)$ e a linha \ref{linha:base} executa em $O(k) = O(n)$. Os laços em \ref{linha:for}-\ref{linha:for:end} executam em:
+    \[
+        T_{\{L8-L13\}}(n) = \sum_{i = 1}^k n_i = O(n)
+    \]
+
+    Por fim, temos ainda os laços de \ref{linha:fornum} até \ref{linha:fornum:end}. Assumindo $\proc{PróximoDigito}$ em tempo constante, como discutido anteriormente, podemos afirmar que o laço tem mesma complexidade que o número de todas as repetições de 1 a $n$ em $V_1, \ldots, V_k$. Pela invariante de \ref{linha:for}-\ref{linha:for:end}, isso equivale à quantidade de elementos em todos os vetores. Portanto:
+    \begin{align*}
+        T_{\{L16-L25\}}(n) = \sum_{i = 1}^n \sum_\text{($d \in$ dígitos não-nulos de $C_i$)} \text{dígito $d$ de $C_i$} = \sum_{j = 1}^k n_j = O(n)
+    \end{align*}
+
+    Logo, a complexidade do algoritmo como um todo é:
+    \[
+        T(n) = O(n) + O(n) + O(n) + O(n) = O(n)
+    \]
+
+    ~
+
+    Para os requisitos de espaço, assumindo que $C$ é capaz de armazenar qualquer inteiro em $[0, b^k)$, o algoritmo usa $O(n)$ de armazenamento na sua execução.
+
+    Para uma implementação em uma máquina binária, o espaço para o número deveria crescer com $O(k \lg b)$, mas para pequenos valores de $k$ e $b$, isso pode ser desconsiderado.
+\end{proof}

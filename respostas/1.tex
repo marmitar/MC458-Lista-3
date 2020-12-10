@@ -1,0 +1,68 @@
+% Aula 10 - 13
+
+\begin{codebox}
+    \Procname{$\proc{Mediana}(X, Y, n)$}
+    \li \If $n \isequal 1$
+        \Then
+    \li     \Return $X[1]$
+    \li \ElseIf $n \isequal 2$
+        \Then
+    \li     \Return $\text{máx}(X[1],~ Y[1])$
+    \li \ElseNoIf
+    \li     $mx \gets \left\lfloor(n + 1) / 2\right\rfloor$
+    \li     $my \gets \left\lceil(n + 1) / 2\right\rceil$
+    \li     \If $X[mx] < Y[my]$
+            \Then
+    \li         \Return $\proc{Mediana}(X[mx \twodots n], Y[1 \twodots my], my)$
+    \li     \Else
+    \li         \Return $\proc{Mediana}(X[1 \twodots mx], Y[my \twodots n], mx)$
+            \End
+        \End
+\end{codebox}
+
+\begin{proof}[Corretude]
+    Suponha um inteiro positivo $n$ tal que, para todo $1 \leq k < n$ e quaisquer vetores $X$ e $Y$ ordenados e com $k$ elementos distintos, podemos encontrar um elemento mediano de $X \cup Y$. Suponha ainda dois vetores ordenados $X$ e $Y$ com $n$ elementos distintos cada, em que $X \cap Y = \varnothing$. Seja $U = X \cup Y$.
+
+    \begin{casos}
+        \item $n = 1$. Então, $c = X_1$ é elemento mediano de $U$.
+
+        \item $n = 2$. Se $X_1 < Y_1$, como $Y_1 < Y_2$, então $c = Y_1$ deve ser um dos elementos medianos. Por outro lado, se $X_1 > Y_1$, então $Y_1 < X_1 < X_2$, ou seja, $c = X_1$ deve ser mediano. Como $X_1 = Y_1$ é impossível, temos em ambos os casos um elemento mediano $c$ de $U$.
+
+        \item $n \geq 3$. Considere as posições intermediárias $m_1 = \lfloor (n + 1) / 2 \rfloor$ e $m_2 = \lceil (n + 1) / 2 \rceil$. Considere também os subvetores $X^{(1)} = [X_1, \ldots, X_{m_1 - 1}]$, $X^{(2)} = [X_{m_1 + 1}, \ldots, X_n]$, $Y^{(1)} = [Y_1, \ldots, Y_{m_2 - 1}]$ e $Y^{(2)} = [Y_{m_2 + 1}, \ldots, Y_n]$, de forma que $\#(X^{(1)}) = \#(Y^{(2)}) = m_1 - 1$ e $\#(X^{(2)}) = \#(Y^{(1)}) = m_2 - 1$.
+
+        \begin{casos}
+            \item $X_{m_1} < Y_{m_2}$. Note que $\{X_{m_1}\} \cup X^{(2)}$ e $Y^{(1)} \cup \{Y_{m_2}\}$ estão ordenados e têm $1 < m_2 < n$ elementos distintos. Logo, pela hipótese indutiva, temos um elemento mediano $c'$ de $U' = \{X_{m_1}\} \cup X^{(2)} \cup Y^{(1)} \cup \{Y_{m_2}\}$.
+
+            Como $X_{m_1} \leq c'$ e $X$ está ordenado, então $X^{(1)}_i < X_{m_1} \leq c'$ para todo $1 \leq i < m_1$. Logo, $\#(U_<) = \#(U'_<) + \#(X^{(1)}) = \#(U'_<) + m_1 - 1$. Da mesma forma, $c' \leq Y_{m_2}$, então $\#(U_>) = \#(U'_>) + \#(Y^{(2)}) = \#(U'_>) + m_1 - 1$.
+
+            Portanto, temos que $\abs{\#(U_<) - \#(U_>)} = \abs{\#(U'_<) + m_1 - 1 - \#(U'_>) - m_1 + 1} = \\ \abs{\#(U'_<) - \#(U'_>)}$. Então, $c = c'$ também é um elemento mediano de $U$.
+
+            \item $X_{m_1} > Y_{m_2}$. Então teremos os vetores $X^{(1)} \cup \{X_{m_1}\}$ e $\{Y_{m_2}\} \cup Y^{(2)}$ ordenados e com $1 < m_1 < n$ elementos cada. Pela hipótese indutiva, temos então um elemento mediano $c'$ de  $U' = X^{(1)} \cup \{X_{m_1}\} \cup \{Y_{m_2}\} \cup Y^{(2)}$.
+
+            Agora teremos que $Y^{(1)}_i < Y_{m_2} \leq c' \leq X_{m_1} < X^{(2)}_j$, para todos $1 \leq i, j < m_2$. Então, $\#(U_<) = \#(U'_<) + m_2 - 1$ e $\#(U_>) = \#(U'_>) + m_2 - 1$, ou seja, $\abs{\#(U_<) - \#(U_>)} = \abs{\#(U'_<) - \#(U'_>)}$.
+
+            Portanto, $c = c'$ também é mediano de $U$.
+        \end{casos}
+    \end{casos}
+
+    ~
+
+    Por fim, podemos, em todos os casos possíveis, encontrar um elemento mediano $c$ de $U$.
+\end{proof}
+
+~
+
+\begin{proof}[Complexidade]
+    Para este algoritmo temos que o tempo de execução é:
+    \begin{align*}
+        T(1) &= T(2) = \Theta(1) \\
+        T(n) &= \begin{cases}
+            T\left(\left\lceil\frac{n + 1}{2}\right\rceil\right) + \Theta(1)
+            & \text{se } X\left[\lfloor(n + 1) / 2\rfloor\right] < Y\left[\lceil(n + 1) / 2\rceil\right] \\
+            T\left(\left\lfloor\frac{n + 1}{2}\right\rfloor\right) + \Theta(1)
+            & \text{caso contrário}
+        \end{cases}
+    \end{align*}
+
+    Em uma análise de pior caso, a relação de recorrência seria $T(n) = T\left(\left\lceil\frac{n + 1}{2}\right\rceil\right) + \Theta(1)$. Logo, pelo Teorema Master, o algoritmo tem complexidade $T(n) \in \Theta\left(n^{\log_2 1} \lg n\right) = \Theta(\lg n) \subset o(n)$.
+\end{proof}

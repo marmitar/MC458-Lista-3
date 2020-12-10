@@ -1,0 +1,9 @@
+Suponha um algoritmo que dado dois vetores ordenados $X$ e $Y$ com $n$ elementos dististintos, sendo $X \cap Y = \varnothing$, retorna a posição de algum elemento mediano de $X \cup Y$ na forma de um par $(V, i)$, onde $V$ indica qual vetor, $X$ ou $Y$, contém o elemento e $i$ é sua posição no vetor.
+
+Note que se $X$ e $Y$ têm distribuições de valores semelhantes, então os elementos medianos estarão no entorno da posições $n/2$ de $X$ ou $Y$. Por outro lado, se $X_n < Y_1$, como eles estão ordenados, as medianas serão esses dois elementos. O mesmo vale quando $Y_n < X_1$. Portanto, dadas distribuições específicas, quaisquer posições de $X$ ou $Y$ podem ser soluções do problema. Ou seja, existem $2 n$ soluções possíveis das quais o algoritmo deve decidir entre uma das 2 corretas.
+
+Para um modelo baseado em comparações, podemos imaginar o algoritmo como uma árvore de decisão binária, sendo as folhas as soluções do problema. Para que o algoritmo seja ótimo no pior caso, a árvore deve estar balanceada e com o menor número de folhas possíveis, mantendo $2^h$ nós à uma altura $h$ da raiz, ou seja, após $h$ comparações. Assim, teremos no útltimo nível, com $2 n$ folhas, que $2 n \leq 2^h$, ou seja, $h \geq \lg n + 1$.
+
+Além disso, como existem duas soluções corretas, um algoritmo ótimo conseguiria decidir uma das soluções sem comparação entre elas, reduzindo a altura ótima para $h^* \geq \lg n$, mas sem alterar a complexidade.
+
+Por fim, temos então que para todo algoritmo $A$ baseado em comparações, $T_A(n) \geq c h \geq c \lg n$ para $c > 0$ e $n$ suficientemente grande, ou seja, $T_A(n) \in \Omega(\lg n)$. Portanto, a cota inferior do problema neste modelo é $\Omega(\lg n)$.
